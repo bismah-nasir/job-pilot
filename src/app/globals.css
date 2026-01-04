@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+    /* Font */
+    --font-inter: var(--font-inter);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    /* --- COLORS --- */
+
+    /* WHITE */
+    --color-app-white: #ffffff;
+
+    /* BLACK */
+    --color-app-black: #000000;
+
+    /* GRAY */
+    --color-app-gray-50: #f9fafb;
+    --color-app-gray-100: #f3f4f6;
+    --color-app-gray-200: #e5e7eb;
+    --color-app-gray-300: #d1d5db;
+    --color-app-gray-400: #9ca3af;
+    --color-app-gray-500: #6b7280;
+    --color-app-gray-600: #4b5563;
+    --color-app-gray-700: #364153;
+    --color-app-gray-800: #1e2939;
+    --color-app-gray-900: #111827;
+    --color-app-gray-950: #030712;
+
+    /* PURPLE */
+    --color-app-purple-50: #faf5ff;
+    --color-app-purple-100: #f3e8ff;
+    --color-app-purple-200: #e9d5ff;
+    --color-app-purple-300: #d8b4fe;
+    --color-app-purple-400: #c084fc;
+    --color-app-purple-500: #a855f7;
+    --color-app-purple-600: #9333ea;
+    --color-app-purple-700: #7e22ce;
+    --color-app-purple-800: #6b21a8;
+    --color-app-purple-900: #581c87;
+
+    /* BLUE */
+    --color-app-blue-50: #eff6ff;
+    --color-app-blue-100: #dbeafe;
+    --color-app-blue-200: #bfdbfe;
+    --color-app-blue-300: #93c5fd;
+    --color-app-blue-400: #60a5fa;
+    --color-app-blue-500: #3b82f6;
+    --color-app-blue-600: #2563eb;
+    --color-app-blue-700: #1d4ed8;
+    --color-app-blue-800: #1e40af;
+    --color-app-blue-900: #1e3a8a;
+
+    /* GREEN */
+    --color-app-green-100: #dcfce7;
+    --color-app-green-400: #4ade80;
+    --color-app-green-500: #22c55e;
+    --color-app-green-600: #16a34a;
+    --color-app-green-700: #15803d;
+    --color-app-green-900: #14532d;
+
+    /* YELLOW */
+    --color-app-yellow-300: #ffdf20;
+    --color-app-yellow-500: #eab308;
+
+    /* ORANGE */
+    --color-app-orange-100: #ffedd5;
+    --color-app-orange-300: #fdba74;
+    --color-app-orange-500: #f97316;
+    --color-app-orange-600: #ea580c;
+    --color-app-orange-900: #7c2d12;
+
+    /* AMBER */
+    --color-app-amber-100: #fef3c7;
+    --color-app-amber-400: #fbbf24;
+    --color-app-amber-700: #b45309;
+    --color-app-amber-900: #78350f;
+
+    /* RED */
+    --color-app-red-100: #fee2e2;
+    --color-app-red-400: #f87171;
+    --color-app-red-500: #ef4444;
+    --color-app-red-600: #dc2626;
+    --color-app-red-700: #b91c1c;
+    --color-app-red-900: #7f1d1d;
+
+    /* TEAL */
+    --color-app-teal-100: #ccfbf1;
+    --color-app-teal-600: #0d9488;
+    --color-app-teal-900: #134e4a;
+
+    /* RED */
+    --color-app-indigo-500: #6366f1;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    font-family: Inter, system-ui, sans-serif;
 }
