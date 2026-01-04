@@ -29,8 +29,11 @@ export const getFeedbackByInterviewId = query({
 
     handler: async (ctx, args) => {
         return await ctx.db
-        .query("feedbacks")
-        .withIndex("by_interview_id", (q) => q.eq("interviewId", args.interviewId))
-        .first();
+            .query("feedbacks")
+            .withIndex("by_interview_id", (q) =>
+                q.eq("interviewId", args.interviewId)
+            )
+            .order("desc")
+            .first();
     },
 });
