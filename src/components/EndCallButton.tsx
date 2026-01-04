@@ -22,7 +22,6 @@ function EndCallButton() {
     console.log("Call:", call);
     console.log("Interview:", interview);
 
-
     if (!call || !interview) return null;
 
     const isMeetingOwner =
@@ -39,7 +38,7 @@ function EndCallButton() {
                 status: "completed",
             });
 
-            router.push("/");
+            router.push("/interview-platform");
             toast.success("Meeting ended for everyone");
         } catch (error) {
             console.log(error);

@@ -75,7 +75,7 @@ function MeetingRoom() {
                         <div className="flex flex-col items-center gap-4">
                             <div className="flex items-center gap-2 flex-wrap justify-center px-4">
                                 <CallControls
-                                    onLeave={() => router.push("/")}
+                                    onLeave={() => router.push("/interview-platform")}
                                 />
                                 <div className="flex items-center gap-2">
                                     <DropdownMenu>
