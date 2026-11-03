@@ -34,7 +34,7 @@ export default function Home() {
                 break;
 
             default:
-                router.push(`interview-platform/${title.toLowerCase()}`);
+                router.push(`/interview-platform/${title.toLowerCase()}`);
                 break;
         }
     };
@@ -53,8 +53,8 @@ export default function Home() {
 
                 <p className="text-app-gray-600 dark:text-app-gray-400 mt-2">
                     {isInterviewer
-                        ? "Manage your interviews and review candidate effectively."
-                        : "Access your upcoming interiews and preparations."}
+                        ? "Manage your interviews and review candidates effectively."
+                        : "Access your upcoming interviews and preparations."}
                 </p>
             </div>
 

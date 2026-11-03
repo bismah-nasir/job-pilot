@@ -24,58 +24,11 @@ function MeetingCard({ interview }: { interview: Interview }) {
         "EEEE, MMMM d · h:mm a"
     );
 
-    // return (
-    //     <Card className="p-0 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 hover:border-purple-300 dark:hover:border-purple-600 transition-all shadow-none">
-    //         <CardHeader className="space-y-2 p-5">
-    //             <div className="flex items-center justify-between">
-    //                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-    //                     {" "}
-    //                     <CalendarIcon className="h-4 w-4" />
-    //                     {formattedDate}
-    //                 </div>
 
-    //                 <Badge
-    //                     variant={
-    //                         status === "live"
-    //                             ? "default"
-    //                             : status === "upcoming"
-    //                               ? "secondary"
-    //                               : "outline"
-    //                     }>
-    //                     {status === "live"
-    //                         ? "Live Now"
-    //                         : status === "upcoming"
-    //                           ? "Upcoming"
-    //                           : "Completed"}
-    //                 </Badge>
-    //             </div>
 
-    //             <CardTitle>{interview.title}</CardTitle>
 
-    //             {interview.description && (
-    //                 <CardDescription className="line-clamp-2">
-    //                     {interview.description}
-    //                 </CardDescription>
-    //             )}
-    //         </CardHeader>
 
-    //         <CardContent>
-    //             {status === "live" && (
-    //                 <Button
-    //                     className="w-full"
-    //                     onClick={() => joinMeeting(interview.streamCallId)}>
-    //                     Join Meeting
-    //                 </Button>
-    //             )}
 
-    //             {status === "upcoming" && (
-    //                 <Button variant="outline" className="w-full" disabled>
-    //                     Waiting to Start
-    //                 </Button>
-    //             )}
-    //         </CardContent>
-    //     </Card>
-    // );
 
     return (
         <Card className="p-0 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 hover:border-purple-300 dark:hover:border-purple-600 transition-all shadow-none">

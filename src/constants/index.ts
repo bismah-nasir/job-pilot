@@ -28,36 +28,6 @@ export const TIME_SLOTS = [
     "17:00",
 ];
 
-// export const QUICK_ACTIONS = [
-//     {
-//         icon: Code2,
-//         title: "New Call",
-//         description: "Start an instant call",
-//         color: "app-green-500",
-//         gradient: "from-app-green-500/10 via-app-green-500/5 to-transparent",
-//     },
-//     {
-//         icon: Users,
-//         title: "Join Interview",
-//         description: "Enter via invitation link",
-//         color: "app-purple-500",
-//         gradient: "from-app-purple-500/10 via-purple-app-500/5 to-transparent",
-//     },
-//     {
-//         icon: Calendar,
-//         title: "Schedule",
-//         description: "Plan upcoming interviews",
-//         color: "app-blue-500",
-//         gradient: "from-app-blue-500/10 via-app-blue-500/5 to-transparent",
-//     },
-//     {
-//         icon: Clock,
-//         title: "Recordings",
-//         description: "Access past interviews",
-//         color: "app-orange-500",
-//         gradient: "from-app-orange-500/10 via-app-orange-500/5 to-transparent",
-//     },
-// ];
 
 export const QUICK_ACTIONS = [
     {

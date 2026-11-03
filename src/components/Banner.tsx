@@ -18,6 +18,11 @@ export default function Banner() {
         router.push("/interview-platform");
     };
 
+    // Interviewer sign-ups go through an approval step
+    const goToInterviewer = () => {
+        router.push("/interview-platform/become-interviewer");
+    };
+
     return (
         <section className="py-20 bg-linear-to-r from-app-purple-600 via-app-purple-700 to-app-blue-600 relative overflow-hidden">
             <div className="absolute inset-0 opacity-10">
@@ -54,7 +59,7 @@ export default function Banner() {
                             Get Started as Candidate
                         </button>
                         <button
-                            onClick={goToApp}
+                            onClick={goToInterviewer}
                             className="inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer hover:scale-105 border-2 text-app-white border-app-white hover:bg-app-white hover:text-app-purple-700 text-lg px-12 py-4 ">
                             <RiBriefcaseLine className="w-5 h-5 flex items-center justify-center mr-3"></RiBriefcaseLine>
                             Get Started as Interviewer

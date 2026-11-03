@@ -9,7 +9,11 @@
  */
 
 import type * as aiInterviews from "../aiInterviews.js";
+import type * as aiUsage from "../aiUsage.js";
+import type * as authHelpers from "../authHelpers.js";
+import type * as codeSessions from "../codeSessions.js";
 import type * as comments from "../comments.js";
+import type * as crons from "../crons.js";
 import type * as feedbacks from "../feedbacks.js";
 import type * as http from "../http.js";
 import type * as interviews from "../interviews.js";
@@ -23,7 +27,11 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   aiInterviews: typeof aiInterviews;
+  aiUsage: typeof aiUsage;
+  authHelpers: typeof authHelpers;
+  codeSessions: typeof codeSessions;
   comments: typeof comments;
+  crons: typeof crons;
   feedbacks: typeof feedbacks;
   http: typeof http;
   interviews: typeof interviews;

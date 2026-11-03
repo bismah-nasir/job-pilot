@@ -37,13 +37,13 @@ function DashboardPage() {
     // Function to handle updateStatus
     const handleStatusUpdate = async (
         interviewId: Id<"interviews">,
-        status: string
+        status: "succeeded" | "failed"
     ) => {
         try {
             await updateStatus({ id: interviewId, status });
             toast.success(`Interview marked as ${status}`);
-        } catch (error) {
-            toast.success("Failed to update status");
+        } catch {
+            toast.error("Failed to update status");
         }
     };
 

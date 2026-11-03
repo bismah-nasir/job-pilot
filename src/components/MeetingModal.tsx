@@ -3,6 +3,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import useMeetingActions from "@/hooks/useMeetingActions";
+import toast from "react-hot-toast";
+
+// Accepts a full meeting link (with or without trailing slash, ?query or #hash) or a bare meeting id
+const extractMeetingId = (input: string) => {
+    const value = input.trim();
+
+    if (!value) return undefined;
+
+    try {
+        const { pathname } = new URL(value);
+        const match = pathname.match(/\/meeting\/([^/]+)/);
+        return match ? decodeURIComponent(match[1]) : undefined;
+    } catch {
+        // Not a URL — treat it as an id, dropping any stray path/query parts
+        return value.split(/[/?#]/).filter(Boolean).pop();
+    }
+};
 
 interface MeetingModalProps {
     isOpen: boolean;
@@ -24,11 +41,14 @@ function MeetingModal({
     const handleStart = () => {
         if (isJoinMeeting) {
             // If it's full URL extract meeting id from the url
-            const meetingId = meetingUrl.split("/").pop();
+            const meetingId = extractMeetingId(meetingUrl);
 
-            if (meetingId) {
-                joinMeeting(meetingId);
+            if (!meetingId) {
+                toast.error("That doesn't look like a valid meeting link.");
+                return;
             }
+
+            joinMeeting(meetingId);
         } else {
             createInstantMeeting();
         }

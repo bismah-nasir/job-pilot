@@ -30,7 +30,7 @@ function RecordingsPage() {
 
                 setRecordings(allRecordings);
             } catch (error) {
-                console.log("Error fetching recordings:", error);
+                console.error("Error fetching recordings:", error);
             }
         };
 
@@ -62,7 +62,7 @@ function RecordingsPage() {
                 {recordings.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-6">
                         {recordings.map((r) => (
-                            <RecordingCard key={r.end_time} recording={r} />
+                            <RecordingCard key={r.url} recording={r} />
                         ))}
                     </div>
                 ) : (

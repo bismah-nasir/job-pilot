@@ -8,299 +8,45 @@ import { Card } from "./ui/card";
 import { CameraIcon, MicIcon, SettingsIcon } from "lucide-react";
 import { Switch } from "./ui/switch";
 import { Button } from "./ui/button";
+import toast from "react-hot-toast";
 
 function MeetingSetup({ onSetupComplete }: { onSetupComplete: () => void }) {
     const [isCameraDisabled, setIsCameraDisabled] = useState(true);
     const [isMicDisabled, setIsMicDisabled] = useState(false);
 
+    const [isJoining, setIsJoining] = useState(false);
+
     const call = useCall();
+
+    useEffect(() => {
+        if (!call) return;
+        if (isCameraDisabled) call.camera.disable();
+        else call.camera.enable();
+    }, [isCameraDisabled, call]);
+
+    useEffect(() => {
+        if (!call) return;
+        if (isMicDisabled) call.microphone.disable();
+        else call.microphone.enable();
+    }, [isMicDisabled, call]);
 
     if (!call) return null;
 
-    useEffect(() => {
-        if (isCameraDisabled) call.camera.disable();
-        else call.camera.enable();
-    }, [isCameraDisabled, call.camera]);
-
-    useEffect(() => {
-        if (isMicDisabled) call.microphone.disable();
-        else call.microphone.enable();
-    }, [isMicDisabled, call.microphone]);
-
     const handleJoin = async () => {
-        await call.join();
-        onSetupComplete();
+        setIsJoining(true);
+        try {
+            await call.join();
+            onSetupComplete();
+        } catch (error) {
+            console.error(error);
+            toast.error("Could not join the meeting. Please try again.");
+            setIsJoining(false);
+        }
     };
-
-    // return (
-    //     <div className="min-h-screen flex items-center justify-center p-6 bg-background/95">
-    //         <div className="w-full max-w-[1200px] mx-auto">
-    //             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    //                 {/* Video Preview Container */}
-    //                 <Card className="md:col-span-1 p-6 flex flex-col">
-    //                     <div>
-    //                         <h1 className="text-xl font-semibold mb-1">
-    //                             Camera Preview
-    //                         </h1>
-    //                         <p className="text-sm text-muted-foreground">
-    //                             Make sure you look good!
-    //                         </p>
-    //                     </div>
-
-    //                     {/* Video Preview */}
-    //                     <div className="mt-4 flex-1 min-h-[400px] rounded-xl overflow-hidden bg-muted/50 border relative">
-    //                         <div className="absolute inset-0">
-    //                             <VideoPreview className="h-full w-full" />
-    //                         </div>
-    //                     </div>
-    //                 </Card>
-
-    //                 {/* Controls Container */}
-    //                 <Card className="md:col-span-1 p-6">
-    //                     <div className="h-full flex flex-col">
-    //                         {/* Meeting Details */}
-    //                         <div>
-    //                             <h2 className="text-xl font-semibold mb-1">
-    //                                 Meeting Details
-    //                             </h2>
-    //                             <p className="text-sm text-muted-foreground break-all">
-    //                                 {call.id}
-    //                             </p>
-    //                         </div>
-
-    //                         <div className="flex-1 flex flex-col justify-between">
-    //                             <div className="space-y-6 mt-8">
-    //                                 {/* Camera Control */}
-    //                                 <div className="flex items-center justify-between">
-    //                                     <div className="flex items-center gap-3">
-    //                                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-    //                                             <CameraIcon className="h-5 w-5 text-primary" />
-    //                                         </div>
-
-    //                                         <div>
-    //                                             <p className="font-medium">
-    //                                                 Camera
-    //                                             </p>
-    //                                             <p className="text-sm text-muted-foreground">
-    //                                                 {isCameraDisabled
-    //                                                     ? "Off"
-    //                                                     : "On"}
-    //                                             </p>
-    //                                         </div>
-    //                                     </div>
-    //                                     <Switch
-    //                                         checked={!isCameraDisabled}
-    //                                         onCheckedChange={(checked) =>
-    //                                             setIsCameraDisabled(!checked)
-    //                                         }
-    //                                     />
-    //                                 </div>
-
-    //                                 {/* Mic Control */}
-    //                                 <div className="flex items-center justify-between">
-    //                                     <div className="flex items-center gap-3">
-    //                                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-    //                                             <MicIcon className="h-5 w-5 text-primary" />
-    //                                         </div>
-
-    //                                         <div>
-    //                                             <p className="font-medium">
-    //                                                 Microphone
-    //                                             </p>
-    //                                             <p className="text-sm text-muted-foreground">
-    //                                                 {isMicDisabled
-    //                                                     ? "Off"
-    //                                                     : "On"}
-    //                                             </p>
-    //                                         </div>
-    //                                     </div>
-    //                                     <Switch
-    //                                         checked={!isMicDisabled}
-    //                                         onCheckedChange={(checked) =>
-    //                                             setIsMicDisabled(!checked)
-    //                                         }
-    //                                     />
-    //                                 </div>
-
-    //                                 {/* Device Settings */}
-    //                                 <div className="flex items-center justify-between">
-    //                                     <div className="flex items-center gap-3">
-    //                                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-    //                                             <SettingsIcon className="h-5 w-5 text-primary" />
-    //                                         </div>
-
-    //                                         <div>
-    //                                             <p className="font-medium">
-    //                                                 Settings
-    //                                             </p>
-    //                                             <p className="text-sm text-muted-foreground">
-    //                                                 Configure devices
-    //                                             </p>
-    //                                         </div>
-    //                                     </div>
-    //                                     <DeviceSettings />
-    //                                 </div>
-    //                             </div>
-
-    //                             {/* Join Button */}
-    //                             <div className="space-y-3 mt-8">
-    //                                 <Button
-    //                                     className="w-full"
-    //                                     size="lg"
-    //                                     onClick={handleJoin}>
-    //                                     Join Meeting
-    //                                 </Button>
-
-    //                                 <p className="text-xs text-center text-muted-foreground">
-    //                                     Do not worry, our team is super
-    //                                     friendly! We want you to succeed. 🎉
-    //                                 </p>
-    //                             </div>
-    //                         </div>
-    //                     </div>
-    //                 </Card>
-    //             </div>
-    //         </div>
-    //     </div>
-    // );
-
-    // return (
-    //     <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-900">
-    //         <div className="w-full max-w-300 mx-auto">
-    //             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    //                 {/* Video Preview Container */}
-    //                 <Card className="md:col-span-1 p-6 flex flex-col border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-    //                     <div>
-    //                         <h1 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">
-    //                             Camera Preview
-    //                         </h1>
-    //                         <p className="text-sm text-gray-500 dark:text-gray-400">
-    //                             Make sure you look good!
-    //                         </p>
-    //                     </div>
-
-    //                     {/* Video Preview */}
-    //                     <div className="mt-4 flex-1 min-h-100 rounded-xl overflow-hidden bg-black/5 dark:bg-black/20 border border-gray-200 dark:border-gray-700 relative">
-    //                         <div className="absolute inset-0">
-    //                             <VideoPreview className="h-full w-full" />
-    //                         </div>
-    //                     </div>
-    //                 </Card>
-
-    //                 {/* Controls Container */}
-    //                 <Card className="md:col-span-1 p-6 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-    //                     <div className="h-full flex flex-col">
-    //                         {/* Meeting Details */}
-    //                         <div>
-    //                             <h2 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">
-    //                                 Meeting Details
-    //                             </h2>
-    //                             <p className="text-sm text-gray-500 dark:text-gray-400 break-all">
-    //                                 {call.id}
-    //                             </p>
-    //                         </div>
-
-    //                         <div className="flex-1 flex flex-col justify-between">
-    //                             <div className="space-y-6 mt-8">
-    //                                 {/* Camera Control */}
-    //                                 <div className="flex items-center justify-between">
-    //                                     <div className="flex items-center gap-3">
-    //                                         <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-    //                                             <CameraIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-    //                                         </div>
-
-    //                                         <div>
-    //                                             <p className="font-medium text-gray-900 dark:text-white">
-    //                                                 Camera
-    //                                             </p>
-    //                                             <p className="text-sm text-gray-500 dark:text-gray-400">
-    //                                                 {isCameraDisabled
-    //                                                     ? "Off"
-    //                                                     : "On"}
-    //                                             </p>
-    //                                         </div>
-    //                                     </div>
-    //                                     <Switch
-    //                                         checked={!isCameraDisabled}
-    //                                         onCheckedChange={(checked) =>
-    //                                             setIsCameraDisabled(!checked)
-    //                                         }
-    //                                         className="data-[state=checked]:bg-purple-600"
-    //                                     />
-    //                                 </div>
-
-    //                                 {/* Mic Control */}
-    //                                 <div className="flex items-center justify-between">
-    //                                     <div className="flex items-center gap-3">
-    //                                         <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-    //                                             <MicIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-    //                                         </div>
-
-    //                                         <div>
-    //                                             <p className="font-medium text-gray-900 dark:text-white">
-    //                                                 Microphone
-    //                                             </p>
-    //                                             <p className="text-sm text-gray-500 dark:text-gray-400">
-    //                                                 {isMicDisabled
-    //                                                     ? "Off"
-    //                                                     : "On"}
-    //                                             </p>
-    //                                         </div>
-    //                                     </div>
-    //                                     <Switch
-    //                                         checked={!isMicDisabled}
-    //                                         onCheckedChange={(checked) =>
-    //                                             setIsMicDisabled(!checked)
-    //                                         }
-    //                                         className="data-[state=checked]:bg-purple-600"
-    //                                     />
-    //                                 </div>
-
-    //                                 {/* Device Settings */}
-    //                                 <div className="flex items-center justify-between">
-    //                                     <div className="flex items-center gap-3">
-    //                                         <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-    //                                             <SettingsIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-    //                                         </div>
-
-    //                                         <div>
-    //                                             <p className="font-medium text-gray-900 dark:text-white">
-    //                                                 Settings
-    //                                             </p>
-    //                                             <p className="text-sm text-gray-500 dark:text-gray-400">
-    //                                                 Configure devices
-    //                                             </p>
-    //                                         </div>
-    //                                     </div>
-    //                                     <DeviceSettings />
-    //                                 </div>
-    //                             </div>
-
-    //                             {/* Join Button */}
-    //                             <div className="space-y-3 mt-8">
-    //                                 <Button
-    //                                     className="w-full bg-purple-600 text-white hover:bg-purple-700 transition-colors shadow-sm"
-    //                                     size="lg"
-    //                                     onClick={handleJoin}>
-    //                                     Join Meeting
-    //                                 </Button>
-
-    //                                 <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-    //                                     Do not worry, our team is super
-    //                                     friendly! We want you to succeed. 🎉
-    //                                 </p>
-    //                             </div>
-    //                         </div>
-    //                     </div>
-    //                 </Card>
-    //             </div>
-    //         </div>
-    //     </div>
-    // );
 
     return (
         <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-900">
-            <div className="w-full max-w-[1200px] mx-auto">
+            <div className="w-full max-w-300 mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Video Preview Container */}
                     <Card className="md:col-span-1 p-6 flex flex-col border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm rounded-xl">
@@ -314,11 +60,11 @@ function MeetingSetup({ onSetupComplete }: { onSetupComplete: () => void }) {
                         </div>
 
                         {/* Video Preview */}
-                        <div className="mt-4 flex-1 min-h-[400px] rounded-xl overflow-hidden bg-black/5 dark:bg-black/20 border border-gray-200 dark:border-gray-700 relative">
+                        <div className="mt-4 flex-1 min-h-100 rounded-xl overflow-hidden bg-black/5 dark:bg-black/20 border border-gray-200 dark:border-gray-700 relative">
                             <div className="absolute inset-0">
                                 <VideoPreview
                                     // FIX 1: Forced the internal video tag to cover the full height/width
-                                    className="!h-full !w-full"
+                                    className="h-full! w-full!"
                                 />
                             </div>
                         </div>
@@ -420,8 +166,9 @@ function MeetingSetup({ onSetupComplete }: { onSetupComplete: () => void }) {
                                     <Button
                                         className="w-full bg-purple-600 text-white hover:bg-purple-700 transition-colors shadow-sm cursor-pointer"
                                         size="lg"
-                                        onClick={handleJoin}>
-                                        Join Meeting
+                                        onClick={handleJoin}
+                                        disabled={isJoining}>
+                                        {isJoining ? "Joining..." : "Join Meeting"}
                                     </Button>
 
                                     <p className="text-xs text-center text-gray-500 dark:text-gray-400">

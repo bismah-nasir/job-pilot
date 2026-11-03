@@ -1,5 +1,6 @@
 import { RedirectToSignIn, SignedIn, SignedOut } from "@clerk/nextjs";
 import AppNavbar from "@/components/AppNavbar";
+import PlatformAccessGate from "@/components/PlatformAccessGate";
 
 function Layout({ children }: { children: React.ReactNode }) {
     return (
@@ -9,7 +10,9 @@ function Layout({ children }: { children: React.ReactNode }) {
             <SignedIn>
                 <div className="min-h-screen bg-app-gray-50 dark:bg-app-gray-900 transition-colors duration-300 scroll-smooth">
                     <AppNavbar />
-                    <main className="px-4 sm:px-6 lg:px-8">{children}</main>
+                    <main className="px-4 sm:px-6 lg:px-8">
+                        <PlatformAccessGate>{children}</PlatformAccessGate>
+                    </main>
                 </div>
             </SignedIn>
 

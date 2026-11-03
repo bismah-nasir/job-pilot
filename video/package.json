@@ -1,0 +1,29 @@
+{
+  "name": "jobpilot-video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remotion demo video and poster for JobPilot",
+  "scripts": {
+    "studio": "remotion studio",
+    "music": "node scripts/make-music.mjs 90 public/music/ambient.mp3",
+    "clean": "remotion still clean-candidate-dashboard public/jobpilot/screenshots/clean/candidate-dashboard.png && remotion still clean-interview-config public/jobpilot/screenshots/clean/interview-config.png && remotion still clean-interviewer-dashboard public/jobpilot/screenshots/clean/interviewer-dashboard.png",
+    "clips": "node scripts/cut-clips.mjs jobpilot",
+    "render": "remotion render JobPilotDemo out/demo.mp4 --codec=h264 --crf=18",
+    "poster": "remotion still JobPilotPoster out/poster.jpg --image-format=jpeg"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "@remotion/google-fonts": "4.0.539",
+    "@remotion/transitions": "4.0.539",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.539"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}

@@ -11,25 +11,33 @@ const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
         useState<StreamVideoClient>();
     const { user, isLoaded } = useUser();
 
+    const userId = user?.id;
+    const name =
+        [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+        user?.username ||
+        user?.primaryEmailAddress?.emailAddress ||
+        userId;
+    const image = user?.imageUrl;
+
     useEffect(() => {
-        if (!isLoaded || !user) return;
+        if (!isLoaded || !userId) return;
 
         const client = new StreamVideoClient({
             apiKey: process.env.NEXT_PUBLIC_STREAM_API_KEY!,
-            user: {
-                id: user?.id,
-                name:
-                    user?.firstName ||
-                    "" + " " + user?.lastName ||
-                    "" ||
-                    user?.id,
-                image: user?.imageUrl,
-            },
+            user: { id: userId, name, image },
             tokenProvider: streamTokenProvider,
         });
 
         setStreamVideoClient(client);
-    }, [user, isLoaded]);
+
+        // Close the connection when the user changes or the provider unmounts,
+        // otherwise every re-render of `user` leaks a websocket.
+        return () => {
+            client.disconnectUser().catch(console.error);
+            setStreamVideoClient(undefined);
+        };
+        // Recreate only when the identity actually changes, not on every Clerk object update
+    }, [isLoaded, userId, name, image]);
 
     if (!streamVideoClient) return <LoaderUI />;
     return <StreamVideo client={streamVideoClient}>{children}</StreamVideo>;

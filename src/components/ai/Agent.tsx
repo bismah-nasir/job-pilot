@@ -3,10 +3,13 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { vapi } from "@/lib/vapi.sdk";
 import { interviewer } from "@/constants";
 import { createFeedback } from "./feedback.action";
+import { VOICE_INTERVIEW_ENABLED } from "@/lib/features";
+import { PhoneOffIcon } from "lucide-react";
 
 enum CallStatus {
     INACTIVE = "INACTIVE",
@@ -22,7 +25,6 @@ interface SavedMessage {
 
 interface AgentProps {
     userName: string;
-    userId?: string;
     interviewId?: string;
     feedbackId?: string;
     type: "generate" | "interview";
@@ -31,7 +33,6 @@ interface AgentProps {
 
 const Agent = ({
     userName,
-    userId,
     type,
     interviewId,
     questions,
@@ -43,6 +44,7 @@ const Agent = ({
         CallStatus.INACTIVE
     );
     const [messages, setMessages] = useState<SavedMessage[]>([]);
+    const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
 
     useEffect(() => {
         const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
@@ -65,7 +67,13 @@ const Agent = ({
         const onSpeechStart = () => setIsSpeaking(true);
         const onSpeechEnd = () => setIsSpeaking(false);
 
-        const onError = (error: Error) => console.log("Error", error);
+        const onError = (error: Error) => {
+            console.error("VAPI error", error);
+            // If the call never connected, let the user try again
+            setCallStatus((prev) =>
+                prev === CallStatus.CONNECTING ? CallStatus.INACTIVE : prev
+            );
+        };
 
         vapi.on("call-start", onCallStart);
         vapi.on("call-end", onCallEnd);
@@ -84,30 +92,65 @@ const Agent = ({
         };
     }, []);
 
-    const handleGenerateFeedback = async (messages: SavedMessage[]) => {
-        const { success, feedbackId: id } = await createFeedback({
+    // Always holds the latest transcript, so the feedback effect doesn't re-run on every message
+    const messagesRef = useRef<SavedMessage[]>([]);
+    useEffect(() => {
+        messagesRef.current = messages;
+    }, [messages]);
+
+    // Guards against generating feedback more than once per call
+    const feedbackRequestedRef = useRef(false);
+
+    const handleGenerateFeedback = async (transcript: SavedMessage[]) => {
+        const result = await createFeedback({
             interviewId: interviewId!,
-            userId: userId!,
-            transcript: messages,
+            transcript,
         });
 
-        if (success && id) {
+        if (result.success && result.feedbackId) {
             router.push(
                 `/interview-platform/ai-prep/interview/${interviewId}/feedback`
             );
         } else {
-            console.log("Error saving feedback");
+            toast.error(
+                "limitMessage" in result && result.limitMessage
+                    ? result.limitMessage
+                    : "Could not generate feedback. Please try again."
+            );
             router.push("/interview-platform/ai-prep");
         }
     };
 
     useEffect(() => {
-        if (callStatus === CallStatus.FINISHED) {
-            handleGenerateFeedback(messages);
-        }
-    }, [messages, callStatus, type, userId]);
+        if (callStatus !== CallStatus.FINISHED || feedbackRequestedRef.current)
+            return;
+
+        feedbackRequestedRef.current = true;
+        setIsGeneratingFeedback(true);
+
+        // Give VAPI a moment to deliver the last final transcripts
+        const timer = setTimeout(() => {
+            const transcript = messagesRef.current;
+            const candidateSpoke = transcript.some((m) => m.role === "user");
+
+            // Nothing to evaluate — don't spend a Gemini call on an empty interview
+            if (!candidateSpoke) {
+                toast.error("The interview ended before you answered any questions.");
+                router.push("/interview-platform/ai-prep");
+                return;
+            }
+
+            handleGenerateFeedback(transcript);
+        }, 1500);
+
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [callStatus]);
 
     const handleCall = async () => {
+        // Voice calls are switched off (VAPI credits) — never contact VAPI
+        if (!VOICE_INTERVIEW_ENABLED) return;
+
         setCallStatus(CallStatus.CONNECTING);
         let formattedQuestions = "";
 
@@ -117,11 +160,17 @@ const Agent = ({
                 .join("\n");
         }
 
-        await vapi.start(interviewer, {
-            variableValues: {
-                questions: formattedQuestions,
-            },
-        });
+        try {
+            await vapi.start(interviewer, {
+                variableValues: {
+                    questions: formattedQuestions,
+                },
+            });
+        } catch (error) {
+            console.error("Failed to start call", error);
+            toast.error("Could not start the call. Please try again.");
+            setCallStatus(CallStatus.INACTIVE);
+        }
     };
 
     const handleDisconnect = async () => {
@@ -134,154 +183,6 @@ const Agent = ({
     const isCallInactiveOrFinished =
         callStatus === CallStatus.INACTIVE ||
         callStatus === CallStatus.FINISHED;
-
-    // Original CSS
-    // return (
-    //     <>
-    //         <div className="call-view">
-    //             <div className="card-interviewer">
-    //                 <div className="avatar">
-    //                     <Image
-    //                         src="/ai-avatar.png"
-    //                         alt="vapi"
-    //                         width={65}
-    //                         height={54}
-    //                         className="object-cover"
-    //                     />
-    //                     {isSpeaking && <span className="animate-speak" />}
-    //                 </div>
-
-    //                 <h3>AI Interviewer</h3>
-    //             </div>
-
-    //             <div className="card-border">
-    //                 <div className="card-content">
-    //                     <Image
-    //                         src="/user-avatar.png"
-    //                         alt="user avatar"
-    //                         width={540}
-    //                         height={540}
-    //                         className="rounded-full object-cover size-[120px]"
-    //                     />
-
-    //                     <h3>{userName}</h3>
-    //                 </div>
-    //             </div>
-    //         </div>
-
-    //         {messages.length > 0 && (
-    //             <div className="transcript-border">
-    //                 <div className="transcript">
-    //                     <p
-    //                         key={latestMessage}
-    //                         className={cn(
-    //                             "transition-opacity duration-500 opacity-0",
-    //                             "animate-fadeIn opacity-100"
-    //                         )}>
-    //                         {latestMessage}
-    //                     </p>
-    //                 </div>
-    //             </div>
-    //         )}
-
-    //         <div className="w-full flex justify-center">
-    //             {callStatus !== "ACTIVE" ? (
-    //                 <button className="relative btn-call" onClick={handleCall}>
-    //                     <span
-    //                         className={cn(
-    //                             "absolute animate-ping rounded-full opacity-75",
-    //                             callStatus !== "CONNECTING" && "hidden"
-    //                         )}></span>
-
-    //                     <span>
-    //                         {isCallInactiveOrFinished ? "Call" : ". . . "}
-    //                     </span>
-    //                 </button>
-    //             ) : (
-    //                 <button
-    //                     className="btn-disconnect"
-    //                     onClick={handleDisconnect}>
-    //                     End
-    //                 </button>
-    //             )}
-    //         </div>
-    //     </>
-    // );
-
-    // CLass CSS
-    // return (
-    //     <>
-    //         <div className="flex sm:flex-row flex-col gap-10 items-center justify-between w-full">
-    //             <div className="flex-center flex-col gap-2 p-7 h-[400px] blue-gradient-dark rounded-lg border-2 border-primary-200/50 flex-1 sm:basis-1/2 w-full">
-    //                 <div className="z-10 flex items-center justify-center blue-gradient rounded-full size-[120px] relative">
-    //                     <Image
-    //                         src="/images/logo.png"
-    //                         alt="vapi"
-    //                         width={540}
-    //                         height={540}
-    //                         className="rounded-full object-cover size-[120px]"
-    //                     />
-    //                     {isSpeaking && <span className="animate-speak" />}
-    //                 </div>
-
-    //                 <h3>AI Interviewer</h3>
-    //             </div>
-
-    //             <div className="border-gradient p-0.5 rounded-2xl flex-1 sm:basis-1/2 w-full h-[400px] max-md:hidden">
-    //                 <div className="flex flex-col gap-2 justify-center items-center p-7 dark-gradient rounded-2xl min-h-full">
-    //                     <Image
-    //                         src="/images/user-avatar.png"
-    //                         alt="user avatar"
-    //                         width={540}
-    //                         height={540}
-    //                         className="rounded-full object-cover size-[120px]"
-    //                     />
-
-    //                     <h3>{userName}</h3>
-    //                 </div>
-    //             </div>
-    //         </div>
-
-    //         {messages.length > 0 && (
-    //             <div className="border-gradient p-0.5 rounded-2xl w-full">
-    //                 <div className="dark-gradient rounded-2xl  min-h-12 px-5 py-3 flex items-center justify-center">
-    //                     <p
-    //                         key={latestMessage}
-    //                         className={cn(
-    //                             "text-lg text-center text-white transition-opacity duration-500 opacity-0",
-    //                             "animate-fadeIn opacity-100"
-    //                         )}>
-    //                         {latestMessage}
-    //                     </p>
-    //                 </div>
-    //             </div>
-    //         )}
-
-    //         <div className="w-full flex justify-center">
-    //             {callStatus !== "ACTIVE" ? (
-    //                 <button
-    //                     className="relative inline-block px-7 py-3 font-bold text-sm leading-5 text-white transition-colors duration-150 bg-success-100 border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-success-200 hover:bg-success-200 min-w-28 cursor-pointer items-center justify-center overflow-visible"
-    //                     onClick={handleCall}>
-    //                     <span
-    //                         className={cn(
-    //                             "absolute animate-ping rounded-full opacity-75 bg-success-100 h-[85%] w-[65%]",
-    //                             callStatus !== "CONNECTING" && "hidden"
-    //                         )}></span>
-
-    //                     <span>
-    //                         {isCallInactiveOrFinished ? "Call" : ". . . "}
-    //                     </span>
-    //                 </button>
-    //             ) : (
-    //                 <button
-    //                     className="inline-block px-7 py-3 text-sm font-bold leading-5 text-white transition-colors duration-150 bg-destructive-100 border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-destructive-200 hover:bg-destructive-200 min-w-28"
-    //                     onClick={handleDisconnect}>
-    //                     End
-    //                 </button>
-    //             )}
-    //         </div>
-    //     </>
-    // );
 
     // Final CSS
     return (
@@ -355,10 +256,36 @@ const Agent = ({
 
             {/* CONTROLS */}
             <div className="w-full flex justify-center py-6">
-                {callStatus !== "ACTIVE" ? (
+                {!VOICE_INTERVIEW_ENABLED ? (
+                    <div className="w-full max-w-6xl flex flex-col sm:flex-row items-center gap-4 rounded-2xl border border-app-amber-100 dark:border-app-amber-900/60 bg-app-amber-100/40 dark:bg-app-amber-900/10 px-6 py-4 text-center sm:text-left">
+                        <div className="flex items-center justify-center size-11 shrink-0 rounded-full bg-app-amber-100 dark:bg-app-amber-900/30">
+                            <PhoneOffIcon className="size-5 text-app-amber-700 dark:text-app-amber-400" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-semibold text-app-gray-900 dark:text-app-white">
+                                AI voice interviewer is unavailable
+                            </p>
+                            <p className="text-sm text-app-gray-600 dark:text-app-gray-400">
+                                The voice call limit has been reached. Practise with
+                                the written interview below — you&apos;ll get the
+                                same AI feedback on your answers.
+                            </p>
+                        </div>
+                        <button
+                            disabled
+                            className="inline-flex items-center justify-center gap-2 px-6 py-2 font-bold text-sm text-app-white bg-app-gray-400 dark:bg-app-gray-600 rounded-full cursor-not-allowed min-w-35">
+                            <PhoneOffIcon className="size-4" />
+                            Call Unavailable
+                        </button>
+                    </div>
+                ) : callStatus !== "ACTIVE" ? (
                     <button
-                        className="relative inline-flex items-center justify-center px-8 py-2 font-bold text-base text-app-white transition-all duration-200 bg-app-purple-600 hover:bg-app-purple-700 active:scale-95 border border-transparent rounded-full shadow-lg hover:shadow-app-purple-500/25 focus:outline-none focus:ring-4 focus:ring-app-purple-500/30 min-w-35"
-                        onClick={handleCall}>
+                        className="relative inline-flex items-center justify-center px-8 py-2 font-bold text-base text-app-white transition-all duration-200 bg-app-purple-600 hover:bg-app-purple-700 active:scale-95 border border-transparent rounded-full shadow-lg hover:shadow-app-purple-500/25 focus:outline-none focus:ring-4 focus:ring-app-purple-500/30 min-w-35 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                        onClick={handleCall}
+                        disabled={
+                            callStatus === CallStatus.CONNECTING ||
+                            isGeneratingFeedback
+                        }>
                         {/* Ping animation for connecting state */}
                         <span
                             className={cn(
@@ -367,9 +294,11 @@ const Agent = ({
                             )}></span>
 
                         <span className="relative z-10 flex items-center gap-2">
-                            {isCallInactiveOrFinished
-                                ? "Start Call"
-                                : "Connecting..."}
+                            {isGeneratingFeedback
+                                ? "Generating feedback..."
+                                : isCallInactiveOrFinished
+                                  ? "Start Call"
+                                  : "Connecting..."}
                         </span>
                     </button>
                 ) : (

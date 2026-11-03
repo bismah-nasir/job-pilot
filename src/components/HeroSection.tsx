@@ -17,6 +17,11 @@ export default function HeroSection() {
         router.push("/interview-platform");
     };
 
+    // Interviewer sign-ups go through an approval step
+    const goToInterviewer = () => {
+        router.push("/interview-platform/become-interviewer");
+    };
+
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-app-purple-50 via-app-white to-app-blue-50 dark:from-app-gray-900 dark:via-app-purple-900/20 dark:to-app-gray-900">
             {/* Background */}
@@ -40,7 +45,7 @@ export default function HeroSection() {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
                 <div className="max-w-4xl mx-auto">
                     {/* AI-Powered Badge */}
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-app-purple-100 dark:bg-app-purple-900/30 text-app-purple-800 dark:text-app-purple-300 text-sm font-medium mb-8 border border-app-purple-200 dark:border-app-purple-700">
@@ -49,7 +54,7 @@ export default function HeroSection() {
                     </div>
 
                     {/* Main Headline */}
-                    <h1 className="text-5xl md:text-7xl font-bold text-app-gray-900 dark:text-app-white mb-6 leading-tight md:leading-none">
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-app-gray-900 dark:text-app-white mb-6 leading-tight md:leading-none">
                         AI-Powered Interview
                         <span className="bg-linear-to-r from-app-purple-600 to-app-blue-600 bg-clip-text text-transparent block">
                             Preparation &amp; Code Panel
@@ -73,7 +78,7 @@ export default function HeroSection() {
                             Start as Candidate
                         </button>
                         <button
-                            onClick={goToApp}
+                            onClick={goToInterviewer}
                             className="inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 whitespace-nowrap cursor-pointer hover:scale-105 border-2 border-app-purple-600 text-app-purple-600 hover:bg-app-purple-600 hover:text-app-white text-lg px-12 py-4 ">
                             <RiBriefcaseLine className="w-5 h-5 flex items-center justify-center mr-3"></RiBriefcaseLine>
                             Start as Interviewer

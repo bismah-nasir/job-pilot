@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { api } from "../../../../../../../convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
-import { Id } from "../../../../../../../convex/_generated/dataModel";
+import { getConvexToken } from "@/lib/convexAuth";
 
 interface RouteParams {
     params: Promise<Record<string, string>>;
@@ -16,17 +16,58 @@ interface RouteParams {
 const Page = async ({ params }: RouteParams) => {
     const { id } = await params;
 
-    const interview = await fetchQuery(api.aiInterviews.getAIInterviewById, {
-        id: id as Id<"aiInterviews">,
-    });
+    const token = await getConvexToken();
 
-    if (!interview) {
-        redirect("/");
+    if (!token) {
+        redirect("/interview-platform/ai-prep");
     }
 
-    const feedback = await fetchQuery(api.feedbacks.getFeedbackByInterviewId, {
-        interviewId: id,
-    });
+    // Returns null for malformed ids and for interviews owned by someone else
+    const interview = await fetchQuery(
+        api.aiInterviews.getAIInterviewById,
+        { id },
+        { token }
+    );
+
+    if (!interview) {
+        redirect("/interview-platform/ai-prep");
+    }
+
+    const feedback = await fetchQuery(
+        api.feedbacks.getFeedbackByInterviewId,
+        { interviewId: id },
+        { token }
+    );
+
+    // Interview exists but hasn't been taken yet (or feedback failed to save)
+    if (!feedback) {
+        return (
+            <section className="flex flex-col items-center gap-6 max-w-xl mx-auto max-sm:px-4 py-16 text-center">
+                <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                    No feedback yet
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400">
+                    You haven&apos;t completed the{" "}
+                    <span className="capitalize">{interview.role}</span>{" "}
+                    interview yet. Take it now to get detailed feedback.
+                </p>
+                <div className="flex gap-4 max-sm:flex-col">
+                    <Button asChild variant="outline">
+                        <Link href="/interview-platform/ai-prep">
+                            Back to Dashboard
+                        </Link>
+                    </Button>
+                    <Button
+                        asChild
+                        className="bg-app-purple-600 hover:bg-app-purple-700 text-white">
+                        <Link href={`/interview-platform/ai-prep/interview/${id}`}>
+                            Take Interview
+                        </Link>
+                    </Button>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="flex flex-col gap-8 max-w-5xl mx-auto max-sm:px-4 py-8">
@@ -63,7 +104,7 @@ const Page = async ({ params }: RouteParams) => {
                         </span>
                         <p className="text-2xl font-bold text-gray-900 dark:text-white">
                             <span className="text-purple-600 dark:text-purple-400">
-                                {feedback?.totalScore}
+                                {feedback.totalScore}
                             </span>
                             <span className="text-gray-400 text-lg">/100</span>
                         </p>
@@ -88,7 +129,7 @@ const Page = async ({ params }: RouteParams) => {
                             Date Taken
                         </span>
                         <p className="text-base font-medium text-gray-900 dark:text-white">
-                            {feedback?._creationTime
+                            {feedback._creationTime
                                 ? dayjs(feedback._creationTime).format(
                                       "MMM D, YYYY h:mm A"
                                   )
@@ -104,7 +145,7 @@ const Page = async ({ params }: RouteParams) => {
                     Final Assessment
                 </h3>
                 <p className="text-gray-700 dark:text-gray-300 italic leading-relaxed text-lg">
-                    &quot;{feedback?.finalAssessment}&quot;
+                    &quot;{feedback.finalAssessment}&quot;
                 </p>
             </div>
 
@@ -114,7 +155,7 @@ const Page = async ({ params }: RouteParams) => {
                     Category Breakdown
                 </h2>
                 <div className="grid grid-cols-1 gap-4">
-                    {feedback?.categoryScores?.map((category, index) => (
+                    {feedback.categoryScores?.map((category, index) => (
                         <div
                             key={index}
                             className="flex flex-col md:flex-row gap-4 p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:border-purple-200 transition-colors">
@@ -128,7 +169,7 @@ const Page = async ({ params }: RouteParams) => {
                                     </h3>
                                 </div>
                                 <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                                    Score: {category.score}/10
+                                    Score: {category.score}/100
                                 </span>
                             </div>
                             <div className="md:w-3/4">
@@ -149,7 +190,7 @@ const Page = async ({ params }: RouteParams) => {
                         <span className="text-green-600">✓</span> Strengths
                     </h3>
                     <ul className="space-y-3">
-                        {feedback?.strengths?.map((strength, index) => (
+                        {feedback.strengths?.map((strength, index) => (
                             <li
                                 key={index}
                                 className="flex items-start gap-3 text-gray-700 dark:text-gray-300 text-sm">
@@ -167,7 +208,7 @@ const Page = async ({ params }: RouteParams) => {
                         Improvement
                     </h3>
                     <ul className="space-y-3">
-                        {feedback?.areasForImprovement?.map((area, index) => (
+                        {feedback.areasForImprovement?.map((area, index) => (
                             <li
                                 key={index}
                                 className="flex items-start gap-3 text-gray-700 dark:text-gray-300 text-sm">

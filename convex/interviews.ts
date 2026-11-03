@@ -1,11 +1,17 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import {
+    getCurrentUser,
+    isPendingInterviewer,
+    requireInterviewer,
+} from "./authHelpers";
 
 export const getAllInterviews = query({
     handler: async (ctx) => {
-        const identity = await ctx.auth.getUserIdentity();
+        const currentUser = await getCurrentUser(ctx);
 
-        if(!identity) throw new Error("Unauthorized");
+        // Only interviewers can see every interview
+        if (currentUser?.role !== "interviewer") return [];
 
         const interviews = await ctx.db.query("interviews").collect();
 
@@ -19,12 +25,14 @@ export const getMyInterviews = query({
 
         if(!identity) return [];
 
+        if (isPendingInterviewer(await getCurrentUser(ctx))) return [];
+
         const interviews = await ctx.db
         .query("interviews")
         .withIndex("by_candidate_id", (q) => q.eq("candidateId", identity.subject))
         .collect();
 
-        return interviews!;
+        return interviews;
     },
 });
 
@@ -32,10 +40,24 @@ export const getInterviewByStreamCallId = query({
     args: { streamCallId: v.string() },
 
     handler: async (ctx, args) => {
-        return await ctx.db
+        const currentUser = await getCurrentUser(ctx);
+
+        if (!currentUser) return null;
+
+        const interview = await ctx.db
         .query("interviews")
         .withIndex("by_stream_call_id", (q) => q.eq("streamCallId", args.streamCallId))
         .first();
+
+        if (!interview) return null;
+
+        const isParticipant =
+            interview.candidateId === currentUser.clerkId ||
+            interview.interviewerIds.includes(currentUser.clerkId);
+
+        if (!isParticipant && currentUser.role !== "interviewer") return null;
+
+        return interview;
     },
 });
 
@@ -51,9 +73,7 @@ export const createInterview = mutation({
     },
 
     handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity();
-
-        if(!identity) throw new Error("Unauthorized");
+        await requireInterviewer(ctx);
 
         return await ctx.db.insert("interviews", {
         ...args,
@@ -64,10 +84,17 @@ export const createInterview = mutation({
 export const updateInterviewStatus = mutation({
     args: {
         id: v.id("interviews"),
-        status: v.string(),
+        status: v.union(
+            v.literal("upcoming"),
+            v.literal("completed"),
+            v.literal("succeeded"),
+            v.literal("failed")
+        ),
     },
 
     handler: async (ctx, args) => {
+        await requireInterviewer(ctx);
+
         return await ctx.db.patch(args.id, {
             status: args.status,
             ...(args.status === "completed" ? { endTime: Date.now() } : {}),

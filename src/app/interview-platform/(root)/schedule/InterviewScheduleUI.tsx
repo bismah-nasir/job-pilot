@@ -1,7 +1,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useStreamVideoClient } from "@stream-io/video-react-sdk";
 import { useMutation, useQuery } from "convex/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
 import toast from "react-hot-toast";
 import {
@@ -49,6 +49,18 @@ function InterviewScheduleUI() {
         interviewerIds: user?.id ? [user.id] : [],
     });
 
+    // After a page refresh Clerk loads the user a moment after this form is created,
+    // so add the current interviewer once they're known.
+    const userId = user?.id;
+    useEffect(() => {
+        if (!userId) return;
+        setFormData((prev) =>
+            prev.interviewerIds.includes(userId)
+                ? prev
+                : { ...prev, interviewerIds: [userId, ...prev.interviewerIds] }
+        );
+    }, [userId]);
+
     const scheduleMeeting = async () => {
         if (!client || !user) {
             return;
@@ -75,11 +87,9 @@ function InterviewScheduleUI() {
             const [hours, minutes] = time.split(":");
             const meetingDate = new Date(date);
             meetingDate.setHours(parseInt(hours), parseInt(minutes), 0);
-            console.log("Meeting Set");
 
             const id = crypto.randomUUID();
             const call = client.call("default", id);
-            console.log("Call created");
 
             const data = {
                 data: {
@@ -91,11 +101,7 @@ function InterviewScheduleUI() {
                 },
             };
 
-            console.log(data);
-
             await call.getOrCreate(data);
-
-            console.log("Call object found");
 
             await createInterview({
                 title,
@@ -106,8 +112,6 @@ function InterviewScheduleUI() {
                 candidateId,
                 interviewerIds,
             });
-
-            console.log("Created Interview");
 
             setOpen(false);
             toast.success("Meeting scheduled successfully!");
@@ -191,21 +195,6 @@ function InterviewScheduleUI() {
 
                             <div className="space-y-6 py-4">
                                 {/* Interview Title */}
-                                {/* <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                        Title
-                                    </label>
-                                    <Input
-                                        placeholder="Interview title"
-                                        value={formData.title}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                title: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div> */}
                                 <div>
                                     <label className="block text-sm font-medium text-app-gray-700 dark:text-app-gray-300 mb-2">
                                         Title{" "}
@@ -226,24 +215,7 @@ function InterviewScheduleUI() {
                                     />
                                 </div>
 
-                                {/* 03 : 34 : 09 */}
                                 {/* Interview Description */}
-                                {/* <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                        Description
-                                    </label>
-                                    <Textarea
-                                        placeholder="Interview description"
-                                        value={formData.description}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                description: e.target.value,
-                                            })
-                                        }
-                                        rows={3}
-                                    />
-                                </div> */}
                                 <div>
                                     <label className="block text-sm font-medium text-app-gray-700 dark:text-app-gray-300 mb-2">
                                         Description
@@ -263,35 +235,6 @@ function InterviewScheduleUI() {
                                 </div>
 
                                 {/* Candidate */}
-                                {/* <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                        Candidate
-                                    </label>
-                                    <Select
-                                        value={formData.candidateId}
-                                        onValueChange={(candidateId) =>
-                                            setFormData({
-                                                ...formData,
-                                                candidateId,
-                                            })
-                                        }>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select candidate" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {candidates.map((candidate) => (
-                                                <SelectItem
-                                                    key={candidate.clerkId}
-                                                    value={candidate.clerkId}>
-                                                    <UserInfo
-                                                        user={candidate}
-                                                    />
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div> */}
-
                                 <div>
                                     <label className="block text-sm font-medium text-app-gray-700 dark:text-app-gray-300 mb-2">
                                         Candidate{" "}
@@ -326,63 +269,6 @@ function InterviewScheduleUI() {
                                 </div>
 
                                 {/* Interviewers */}
-                                {/* <div className="space-y-2">
-                                    <label className="text-sm font-medium">
-                                        Interviewers
-                                    </label>
-                                    <div className="flex flex-wrap gap-2 mb-2">
-                                        {selectedInterviewers.map(
-                                            (interviewer) => (
-                                                <div
-                                                    key={interviewer.clerkId}
-                                                    className="inline-flex items-center gap-2 bg-secondary px-2 py-1 rounded-md text-sm">
-                                                    <UserInfo
-                                                        user={interviewer}
-                                                    />
-                                                    {interviewer.clerkId !==
-                                                        user?.id && (
-                                                        <button
-                                                            onClick={() =>
-                                                                removeInterviewer(
-                                                                    interviewer.clerkId
-                                                                )
-                                                            }
-                                                            className="hover:text-destructive transition-colors">
-                                                            <XIcon className="h-4 w-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                    {availableInterviewers.length > 0 && (
-                                        <Select onValueChange={addInterviewer}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Add interviewer" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {availableInterviewers.map(
-                                                    (interviewer) => (
-                                                        <SelectItem
-                                                            key={
-                                                                interviewer.clerkId
-                                                            }
-                                                            value={
-                                                                interviewer.clerkId
-                                                            }>
-                                                            <UserInfo
-                                                                user={
-                                                                    interviewer
-                                                                }
-                                                            />
-                                                        </SelectItem>
-                                                    )
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                </div> */}
-
                                 <div>
                                     <label className="block text-sm font-medium text-app-gray-700 dark:text-app-gray-300 mb-2">
                                         Interviewers{" "}
@@ -445,58 +331,6 @@ function InterviewScheduleUI() {
                                 </div>
 
                                 {/* Date and Time */}
-                                {/* <div className="flex gap-4"> */}
-                                {/* Calendar Component */}
-                                {/* <div className="space-y-2">
-                                        <label className="text-sm font-medium">
-                                            Date
-                                        </label>
-                                        <Calendar
-                                            mode="single"
-                                            selected={formData.date}
-                                            onSelect={(date) =>
-                                                date &&
-                                                setFormData({
-                                                    ...formData,
-                                                    date,
-                                                })
-                                            }
-                                            disabled={(date) =>
-                                                date < new Date()
-                                            }
-                                            className="rounded-md border"
-                                        />
-                                    </div> */}
-
-                                {/* Time Component */}
-                                {/* <div className="space-y-2">
-                                        <label className="text-sm font-medium">
-                                            Time
-                                        </label>
-                                        <Select
-                                            value={formData.time}
-                                            onValueChange={(time) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    time,
-                                                })
-                                            }>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select time" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {TIME_SLOTS.map((time) => (
-                                                    <SelectItem
-                                                        key={time}
-                                                        value={time}>
-                                                        {time}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div> */}
-                                {/* </div> */}
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Date Component */}
                                     <div>
@@ -565,26 +399,6 @@ function InterviewScheduleUI() {
                                 </div>
 
                                 {/* ACTION BUTTONS */}
-                                {/* <div className="flex justify-end gap-3 pt-4">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setOpen(false)}>
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        onClick={scheduleMeeting}
-                                        disabled={isCreating}>
-                                        {isCreating ? (
-                                            <>
-                                                <Loader2Icon className="mr-2 size-4 animate-spin" />
-                                                Scheduling...
-                                            </>
-                                        ) : (
-                                            "Schedule Interview"
-                                        )}
-                                    </Button>
-                                </div> */}
-
                                 <div className="flex justify-end gap-3 pt-4">
                                     <Button
                                         variant="outline"

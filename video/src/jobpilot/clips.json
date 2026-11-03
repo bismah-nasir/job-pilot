@@ -1,0 +1,7 @@
+{
+  "source": "public/jobpilot/recordings/JobPilot_AI_Mock_Interview_Demo.mp4",
+  "clips": [
+    { "name": "greeting", "from": 11, "to": 21 },
+    { "name": "answer", "from": 38, "to": 46 }
+  ]
+}

@@ -1,0 +1,3 @@
+node_modules
+# Raw screen recordings are too big for git; cut highlights with `npm run clips`
+public/*/recordings/

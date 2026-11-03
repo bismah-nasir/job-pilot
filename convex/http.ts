@@ -1,8 +1,8 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
-import { WebhookEvent } from "@clerk/nextjs/server";
+import type { WebhookEvent } from "@clerk/nextjs/server";
 import { Webhook } from "svix";
-import { api } from "./_generated/api";
+import { internal } from "./_generated/api";
 
 const http = httpRouter();
 
@@ -26,8 +26,8 @@ http.route({
             });
         }
 
-        const payload = await request.json();
-        const body = JSON.stringify(payload);
+        // Svix signs the exact raw bytes — re-serializing parsed JSON can break verification
+        const body = await request.text();
 
         const wh = new Webhook(webhookSecret);
         let evt: WebhookEvent;
@@ -38,35 +38,62 @@ http.route({
                 "svix-timestamp": svix_timestamp,
                 "svix-signature": svix_signature,
             }) as WebhookEvent;
-            
+
         } catch (error) {
             console.error("Error verifying webhook:", error);
             return new Response("Error occurred", {status: 400});
         }
 
-        const eventType = evt.type;
+        try {
+            switch (evt.type) {
+                case "user.created":
+                case "user.updated": {
+                    const {
+                        id,
+                        email_addresses,
+                        primary_email_address_id,
+                        first_name,
+                        last_name,
+                        image_url,
+                    } = evt.data;
 
-        if(eventType === "user.created") {
-            const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+                    const email = (
+                        email_addresses.find(
+                            (e) => e.id === primary_email_address_id
+                        ) ?? email_addresses[0]
+                    )?.email_address;
 
-            const email = email_addresses[0].email_address;
-            const name = `${first_name || ""} ${last_name || ""}`.trim();
+                    if (!email) {
+                        return new Response("User has no email address", { status: 400 });
+                    }
 
-            try {
-                await ctx.runMutation(api.users.syncUser, {
-                    clerkId: id,
-                    email,
-                    name,
-                    image: image_url,
-                });
-            } catch (error) {
-                console.log("Error creating user:", error);
-                return new Response("Error creating user", { status: 500 });
+                    const name = `${first_name || ""} ${last_name || ""}`.trim();
+                    const user = { clerkId: id, email, name, image: image_url };
+
+                    if (evt.type === "user.created") {
+                        await ctx.runMutation(internal.users.syncUser, user);
+                    } else {
+                        await ctx.runMutation(internal.users.updateUser, user);
+                    }
+                    break;
+                }
+
+                case "user.deleted": {
+                    if (evt.data.id) {
+                        await ctx.runMutation(internal.users.deleteUser, {
+                            clerkId: evt.data.id,
+                        });
+                    }
+                    break;
+                }
             }
+        } catch (error) {
+            console.error(`Error handling ${evt.type}:`, error);
+            return new Response("Error processing webhook", { status: 500 });
         }
+
         return new Response("Webhook processed successfully", { status: 200 });
     }),
 });
 
 export default http;
-

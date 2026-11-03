@@ -30,7 +30,7 @@ const useMeetingActions = () => {
 
         } catch (error) {
             console.error(error);
-            toast.error("Failed to create meeting hehe");
+            toast.error("Failed to create meeting. Please try again.");
         }
     };
 

@@ -11,7 +11,6 @@ import { useState } from "react";
 
 function MeetingPage() {
     const { id } = useParams();
-    console.log(id);
     const { isLoaded } = useUser();
 
     const [isSetupComplete, setIsSetupComplete] = useState(false);

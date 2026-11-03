@@ -61,7 +61,7 @@ function MeetingRoom() {
 
                         {/* Participants List Overlay*/}
                         {showParticipants && (
-                            <div className="absolute right-0 top-0 h-full w-[300px] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-l border-gray-200 dark:border-gray-700 shadow-xl z-20">
+                            <div className="absolute right-0 top-0 h-full w-75 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-l border-gray-200 dark:border-gray-700 shadow-xl z-20">
                                 <CallParticipantsList
                                     onClose={() => setShowParticipants(false)}
                                 />
@@ -88,16 +88,16 @@ function MeetingRoom() {
                                             </Button>
                                         </DropdownMenuTrigger>
 
-                                        <DropdownMenuContent className="!bg-white dark:!bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+                                        <DropdownMenuContent className="bg-white! dark:bg-gray-800! border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
                                             <DropdownMenuItem
-                                                className="cursor-pointer hover:!bg-gray-100 dark:hover:!bg-gray-700"
+                                                className="cursor-pointer hover:bg-gray-100! dark:hover:bg-gray-700!"
                                                 onClick={() =>
                                                     setLayout("grid")
                                                 }>
                                                 Grid View
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                className="cursor-pointer hover:!bg-gray-100 dark:hover:!bg-gray-700"
+                                                className="cursor-pointer hover:bg-gray-100! dark:hover:bg-gray-700!"
                                                 onClick={() =>
                                                     setLayout("speaker")
                                                 }>

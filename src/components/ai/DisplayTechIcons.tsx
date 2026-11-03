@@ -20,9 +20,9 @@ const DisplayTechIcons = ({ techStack }: TechIconProps) => {
                 setTechIcons(data);
             })
             .catch((error) => {
-                console.log(error);
+                console.error(error);
             });
-    }, []);
+    }, [techStack]);
 
     return (
         <div className="flex flex-row items-center">

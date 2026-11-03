@@ -11,6 +11,10 @@ const useGetCallById = (id: string | string[]) => {
         if (!client) return;
 
         const getCall = async () => {
+            // Reset when navigating between meetings so the old call isn't shown
+            setIsCallLoading(true);
+            setCall(undefined);
+
             try {
                 const { calls } = await client.queryCalls({
                     filter_conditions: { id },

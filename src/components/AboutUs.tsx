@@ -95,7 +95,7 @@ export default function AboutUs() {
                                 priority
                             />
                         </div>
-                        <div className="absolute -bottom-6 -left-6 bg-app-white dark:bg-app-gray-800 rounded-2xl shadow-xl p-6 border border-app-gray-100 dark:border-app-gray-700">
+                        <div className="absolute -bottom-6 left-2 sm:-left-6bg-app-white dark:bg-app-gray-800 rounded-2xl shadow-xl p-6 border border-app-gray-100 dark:border-app-gray-700">
                             <div className="text-3xl font-bold text-app-purple-600 mb-1">
                                 10K+
                             </div>
@@ -103,7 +103,7 @@ export default function AboutUs() {
                                 Successful Interviews
                             </div>
                         </div>
-                        <div className="absolute -top-6 -right-6 bg-app-white dark:bg-app-gray-800 rounded-2xl shadow-xl p-6 border border-app-gray-100 dark:border-app-gray-700">
+                        <div className="absolute -top-6 right-2 sm:-right-6bg-app-white dark:bg-app-gray-800 rounded-2xl shadow-xl p-6 border border-app-gray-100 dark:border-app-gray-700">
                             <div className="text-3xl font-bold text-app-purple-600 mb-1">
                                 95%
                             </div>

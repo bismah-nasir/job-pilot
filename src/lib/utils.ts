@@ -237,14 +237,17 @@ export const getTechLogos = async (techArray: string[]) => {
         const normalized = normalizeTechName(tech);
         return {
             tech,
-            url: `${techIconBaseURL}/${normalized}/${normalized}-original.svg`,
+            url: normalized
+                ? `${techIconBaseURL}/${normalized}/${normalized}-original.svg`
+                : null,
         };
     });
 
     const results = await Promise.all(
         logoURLs.map(async ({ tech, url }) => ({
             tech,
-            url: (await checkIconExists(url)) ? url : "/tech.svg",
+            // Unknown tech names skip the network check and use the local fallback icon
+            url: url && (await checkIconExists(url)) ? url : "/tech.svg",
         }))
     );
 
@@ -255,3 +258,10 @@ export const getRandomInterviewCover = () => {
     const randomIndex = Math.floor(Math.random() * interviewCovers.length);
     return `/covers${interviewCovers[randomIndex]}`;
 };
+// Gemini sometimes spells tech names out for the voice assistant ("Next dot js").
+// Turns them back into readable one-word names: "Next dot js" → "NextJS", "node dot JS" → "NodeJS".
+export const normalizeTechTerms = (text: string) =>
+    text.replace(
+        /\b([A-Za-z]+)\s+dot\s+js\b/gi,
+        (_, name: string) => `${name[0].toUpperCase()}${name.slice(1)}JS`
+    );

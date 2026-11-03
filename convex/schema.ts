@@ -7,6 +7,9 @@ export default defineSchema({
         email: v.string(),
         image: v.optional(v.string()),
         role: v.union(v.literal("candidate"), v.literal("interviewer")),
+        // Set when someone signs up via "Sign in as Interviewer".
+        // Approve: change `role` to "interviewer". Reject: delete this field.
+        interviewerRequest: v.optional(v.literal("pending")),
         clerkId: v.string(),
     }).index("by_clerk_id", ["clerkId"]),
 
@@ -39,6 +42,25 @@ export default defineSchema({
         candidateId: v.string(),
         coverImage: v.string(),
     }).index("by_candidate_id", ["candidateId"]),
+
+    // Live code editor state for a video call — one row per call, shared by everyone in it
+    codeSessions: defineTable({
+        streamCallId: v.string(),
+        questionId: v.string(),
+        language: v.union(
+            v.literal("javascript"),
+            v.literal("python"),
+            v.literal("java")
+        ),
+        code: v.string(),
+        updatedBy: v.string(),
+    }).index("by_stream_call_id", ["streamCallId"]),
+
+    // One row per Gemini-backed request, used for per-user rate limits (see convex/aiUsage.ts)
+    aiUsage: defineTable({
+        userId: v.string(),
+        kind: v.union(v.literal("interview"), v.literal("feedback")),
+    }).index("by_user_kind", ["userId", "kind"]),
 
     feedbacks: defineTable({
         interviewId: v.string(),

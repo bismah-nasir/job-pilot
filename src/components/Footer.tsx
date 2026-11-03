@@ -100,7 +100,7 @@ export default function Footer() {
                             </li>
                         </ul>
                     </div>
-                    <div>
+                    <div id="contact">
                         <h3 className="text-lg font-semibold mb-4">Contact</h3>
                         <ul className="space-y-2">
                             <li className="text-app-gray-400">
@@ -120,7 +120,7 @@ export default function Footer() {
                 </div>
                 <div className="border-t border-app-gray-800 mt-8 pt-8 text-center">
                     <p className="text-app-gray-400">
-                        © 2025 JobPilot. All rights reserved. Built with ❤️ for
+                        © {new Date().getFullYear()} JobPilot. All rights reserved. Built with ❤️ for
                         better hiring.
                     </p>
                 </div>

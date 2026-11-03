@@ -6,9 +6,9 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { RiSparklingLine } from "react-icons/ri";
 
 function DashboardBtn() {
-    const { isCandidate, isLoading } = useUserRole();
+    const { isInterviewer, isLoading } = useUserRole();
 
-    if (isCandidate || isLoading) {
+    if (isLoading || !isInterviewer) {
         return null;
     }
 
